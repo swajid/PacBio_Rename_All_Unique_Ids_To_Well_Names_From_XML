@@ -20,7 +20,7 @@ for root, dirs, files in os.walk(path):
                  paths.append(s)
 
 #initialize data frame
-df = pd.DataFrame(columns=('Shipping_Id','Movie_Id', 'WellName', 'FileName', 'Unique_Id'))
+df = pd.DataFrame(columns=('Shipping_Id','Movie_Id', 'WellName', 'FileName', 'Unique_Id', 'TimeStamped_Name'))
 
 #pull data via tags from each xml file
 for k in paths:
@@ -33,8 +33,8 @@ for k in paths:
     movie_id = file_name.split(".")[0]
     shipping_id = soup.find("pbds:DataSetMetadata").find("pbmeta:Collections").find("pbmeta:WellSample").get("Name")
     unique_id = soup.find("pbds:ConsensusReadSet").get("UniqueId")
-    df = df.append({'Shipping_Id':shipping_id, 'Movie_Id':movie_id, 'WellName':well_name.string, 'FileName':file_name, 'Unique_Id':unique_id}, ignore_index=True)
-
+    timestamped_name = soup.find("pbds:DataSetMetadata").find("pbmeta:Collections").find("pbmeta:CollectionMetadata").find("pbmeta:RunDetails").find("pbmeta:TimeStampedName").string
+    df = df.append({'Shipping_Id':shipping_id, 'Movie_Id':movie_id, 'WellName':well_name.string, 'FileName':file_name, 'Unique_Id':unique_id, 'TimeStamped_Name':timestamped_name}, ignore_index=True)
 # save df to excel if you'd like
 #df.to_excel("***_Shipping_Ids_Files.xlsx", index=0)
     
@@ -46,5 +46,6 @@ for index, row in df.iterrows():
     regex = "'s/"+folder_name+"/"+well_name+"/g'"
     print("find . -type d -name '"+folder_name+"' | while read f; do mv $f $(echo $f | sed "+regex+"); done")
  
-
+# delete all files except bam, bam.pbi, *consensusreadset.xml from all subdirs
+find . -type f -not \( -name "*.bam" -o -name "*.bam.pbi" -o -name "*consensusreadset.xml" \) -delete
 
